@@ -1,6 +1,7 @@
  package com.example.layoutbasico
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -42,9 +43,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -74,9 +80,13 @@ class MainActivity : ComponentActivity() {
 fun SearchBar(
     modifier: Modifier = Modifier
 ) {
+        var searchText by remember { mutableStateOf("") }
+
         TextField(
-            value = "",
-            onValueChange = {},
+            value = searchText,
+            onValueChange = {
+                searchText = it
+            },
             leadingIcon = {
                 Icon(imageVector = Icons.Default.Search,
                     contentDescription = null)
@@ -90,8 +100,16 @@ fun SearchBar(
             },
             modifier = modifier
                 .fillMaxWidth()
-                .heightIn(min = 56.dp)
+                .heightIn(56.dp)
         )
+        var filter_list = favoriteCollectionsData
+        if (!searchText.equals(""))
+            filter_list = favoriteCollectionsData.filter {
+                stringResource(it.text).contains(searchText, ignoreCase = true)
+            }
+         HomeSection(R.string.align_your_body) {
+             AlignYourBodyRow(filter_list)//,modifier)
+         }
 }
 
  @Preview(showBackground = true)
@@ -186,7 +204,7 @@ fun SearchBar(
 
 // Linha
 @Composable
-fun AlignYourBodyRow(
+fun AlignYourBodyRow(listagem: List<DrawableStringPair>,
     modifier: Modifier = Modifier
 ) {
     LazyRow (
@@ -194,7 +212,7 @@ fun AlignYourBodyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         modifier = modifier
     ) {
-        items(alignYourBodyData){
+        items(listagem){
             item -> AlignYourBodyElement(item.drawable, item.text)
          }
     }
@@ -204,7 +222,7 @@ fun AlignYourBodyRow(
  @Composable
  fun AlignYourBodyRowPreview() {
      LayoutBasicoTheme {
-         AlignYourBodyRow()
+         AlignYourBodyRow(alignYourBodyData)
      }
  }
 
@@ -220,6 +238,7 @@ fun AlignYourBodyRow(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.height(168.dp)
     ) {
+        Log.i("APP", favoriteCollectionsData.toString())
         items(favoriteCollectionsData) {
             item -> FavoriteCollectionCard(item.drawable, item.text,
                 )
@@ -260,7 +279,7 @@ fun AlignYourBodyRow(
  fun HomeSectionPreview() {
      LayoutBasicoTheme {
          HomeSection(R.string.align_your_body) {
-             AlignYourBodyRow()
+             AlignYourBodyRow(alignYourBodyData)
          }
      }
  }
@@ -271,10 +290,7 @@ fun AlignYourBodyRow(
          modifier.verticalScroll(rememberScrollState())
      ) {
          Spacer(Modifier.height(16.dp))
-         SearchBar(Modifier.height(16.dp))
-         HomeSection(R.string.align_your_body) {
-             AlignYourBodyRow()
-         }
+         SearchBar(Modifier.height(56.dp))
          HomeSection(R.string.favorite_collections) {
              FavoriteCollectionsGrid()
          }
@@ -363,7 +379,7 @@ fun CalmariaApp() {
      R.drawable.fc6_nightly_wind_down to R.string.fc6_nightly_wind_down
  ).map { DrawableStringPair(it.first, it.second) }
 
- private data class DrawableStringPair(
+ data class DrawableStringPair(
      @DrawableRes val drawable: Int,
      @StringRes val text: Int
  )
